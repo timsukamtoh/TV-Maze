@@ -4,6 +4,9 @@ const $showsList = $("#showsList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 const BASE_URL = "https://api.tvmaze.com";
+const DEFAULT_IMG = 'https://tinyurl.com/tv-missing';
+const $episodesList = $("#episodesList");
+
 
 /** Given a search term, search for tv shows that match that query.
  *
@@ -25,7 +28,7 @@ async function getShowsByTerm(term) {
 
   const showList = showsResults.data.map(function (result) {
     const { id, name, summary, image } = result.show;
-    const imgSrc = image === null ? 'https://tinyurl.com/tv-missing' : image.medium;
+    const imgSrc = image === null ? DEFAULT_IMG : image.medium;  //url to global
 
     return { id, name, summary, imgSrc };
   });
@@ -42,17 +45,18 @@ async function getShowsByTerm(term) {
 function displayShows(shows) {
   $showsList.empty();
 
-  for (const show of shows) {
+  for (const { id, name, summary, imgSrc } of shows) {
+
     const $show = $(`
-        <div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
+        <div data-show-id="${id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src=${show.imgSrc}
-              alt=${show.name}
+              src=${imgSrc}
+              alt=${name}
               class="w-25 me-3">
            <div class="media-body">
-             <h5 class="text-primary">${show.name}</h5>
-             <div><small>${show.summary}</small></div>
+             <h5 class="text-primary">${name}</h5>
+             <div><small>${summary}</small></div>
              <button class="btn btn-outline-light btn-sm Show-getEpisodes">
                Episodes
              </button>
@@ -62,7 +66,17 @@ function displayShows(shows) {
       `);
 
     $showsList.append($show);
+
+      $("button").on("click", function(){
+        const episodesList = getEpisodesOfShow(id);
+        displayEpisodes(episodesList);
+
+      })
+
+
+
   }
+
 }
 
 
@@ -88,10 +102,33 @@ $searchForm.on("submit", async function handleSearchForm(evt) {
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+async function getEpisodesOfShow(id) {
+  const showsResults = await axios({
+    method: 'get',
+    baseURL: BASE_URL,
+    url: `shows/${id}/episodes`,
+  });
+
+  console.log(showsResults.data)
+  showsResults.data;
+
+}
 
 /** Write a clear docstring for this function... */
 
-// function displayEpisodes(episodes) { }
+function displayEpisodes(episodes) {
+  const AllEpisodes = getEpisodesOfShow();
+  
+   for (let episides of getEpisodesOfShow){
+    const fullEpisodes = episodes[0];
+    console.log(fullEpisodes);
+    $episodesList.append(`<li>${fullEpisodes}<li>`);
+  }
+
+
+
+}
+
+
 
 // add other functions that will be useful / match our structure & design
